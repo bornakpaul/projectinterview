@@ -20,12 +20,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool subSelected = false;
-  void _manageStateForChildWidget(bool newValue) {
-    setState(() {
-      subSelected = newValue;
-    });
-  }
+//   bool subSelected = false;
+//   void _manageStateForChildWidget(bool newValue) {
+//     setState(() {
+//       subSelected = newValue;
+//     });
+//   }
 
   List<SubDetails> subdetails = [
     SubDetails(subscriptionName: 'Yearly', price: '10', discount: '20'),
@@ -33,9 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
     SubDetails(subscriptionName: 'Weekly', price: '20', discount: '3'),
     SubDetails(subscriptionName: 'Half-yearly', price: '100', discount: '20'),
   ];
+  String? _subscriptionSelected;
 
   @override
   Widget build(BuildContext context) {
+    _subscriptionSelected ??= subdetails[0].subscriptionName;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xff05837F),
@@ -58,31 +60,42 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(
                 height: 20.0,
               ),
-              GridView.count(
-                crossAxisCount: 2,
+              GridView.builder(
                 shrinkWrap: true,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                children: subdetails.map((e) {
-                  return Builder(builder: (BuildContext context) {
-                    return SubscriptionTile(
-                      price: e.price,
-                      discount: e.discount,
-                      subscription: e.subscriptionName,
-                      notifyParent: _manageStateForChildWidget,
-                      isActive: subSelected,
-                    );
-                  });
-                }).toList(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    crossAxisCount: 2),
+                itemBuilder: (context, index) {
+                  final subscriptionSelected =
+                      subdetails[index].subscriptionName;
+                  final isSelected =
+                      subscriptionSelected == _subscriptionSelected;
+                  return SubscriptionTile(
+                    detailsList: subdetails,
+                    price: subdetails[index].price,
+                    discount: subdetails[index].discount,
+                    subscription: subdetails[index].subscriptionName,
+                    isActive: isSelected,
+                    notifyParent: (bool selected) {
+                      setState(() {
+                        _subscriptionSelected =
+                            selected ? subscriptionSelected : null;
+                      });
+                    },
+                    index: index,
+                  );
+                },
+                itemCount: subdetails.length,
               ),
               const SizedBox(
                 height: 30.0,
               ),
-              OneTimeButton(
-                subscriptionPack: SubscriptionPack.oneTime,
-                isActive: subSelected,
-                notifyParent: _manageStateForChildWidget,
-              ),
+              //   OneTimeButton(
+              //     subscriptionPack: SubscriptionPack.oneTime,
+              //     isActive: subSelected,
+              //     notifyParent: _manageStateForChildWidget,
+              //   ),
               const SizedBox(
                 height: 30.0,
               ),
@@ -111,19 +124,23 @@ class _HomeScreenState extends State<HomeScreen> {
 enum SubscriptionPack { weekly, monthly, quarterly, yearly, oneTime, none }
 
 class SubscriptionTile extends StatelessWidget {
+  final List<SubDetails> detailsList;
   final String price;
   final String discount;
   final String subscription;
   final ValueChanged<bool>? notifyParent;
   final bool isActive;
+  final int index;
 
   const SubscriptionTile({
     Key? key,
+    required this.detailsList,
     required this.price,
     required this.discount,
     required this.subscription,
     this.notifyParent,
-    this.isActive = false,
+    required this.isActive,
+    required this.index,
   }) : super(key: key);
 
   void manageState() {
