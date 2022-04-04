@@ -21,6 +21,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool subSelected = false;
+  void _manageStateForChildWidget(bool newValue) {
+    setState(() {
+      subSelected = newValue;
+    });
+  }
+
+  List<SubDetails> subdetails = [
+    SubDetails(subscriptionName: 'Yearly', price: '10', discount: '20'),
+    SubDetails(subscriptionName: 'Monthly', price: '50', discount: '10'),
+    SubDetails(subscriptionName: 'Weekly', price: '20', discount: '3'),
+    SubDetails(subscriptionName: 'Half-yearly', price: '100', discount: '20'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,46 +59,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 20.0,
               ),
               GridView.count(
-                  shrinkWrap: true,
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  children: //subList.map((e) => e).toList(),
-                      [
-                    SubscriptionSelector(
-                      subscriptionPack: SubscriptionPack.monthly,
-                      subscriptionName: 'Monthly',
-                      price: '₹220',
-                      discount: '21%',
-                      selected: subSelected,
-                    ),
-                    SubscriptionSelector(
-                      subscriptionPack: SubscriptionPack.monthly,
-                      subscriptionName: 'Monthly',
-                      price: '₹220',
-                      discount: '21%',
-                      selected: subSelected,
-                    ),
-                    SubscriptionSelector(
-                      subscriptionPack: SubscriptionPack.monthly,
-                      subscriptionName: 'Monthly',
-                      price: '₹220',
-                      discount: '21%',
-                      selected: subSelected,
-                    ),
-                    SubscriptionSelector(
-                      subscriptionPack: SubscriptionPack.monthly,
-                      subscriptionName: 'Monthly',
-                      price: '₹220',
-                      discount: '21%',
-                      selected: subSelected,
-                    ),
-                  ]),
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                children: subdetails.map((e) {
+                  return Builder(builder: (BuildContext context) {
+                    return SubscriptionTile(
+                      price: e.price,
+                      discount: e.discount,
+                      subscription: e.subscriptionName,
+                      notifyParent: _manageStateForChildWidget,
+                      isActive: subSelected,
+                    );
+                  });
+                }).toList(),
+              ),
               const SizedBox(
                 height: 30.0,
               ),
-              const OneTimeButton(
+              OneTimeButton(
                 subscriptionPack: SubscriptionPack.oneTime,
+                isActive: subSelected,
+                notifyParent: _manageStateForChildWidget,
               ),
               const SizedBox(
                 height: 30.0,
@@ -115,46 +110,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
 enum SubscriptionPack { weekly, monthly, quarterly, yearly, oneTime, none }
 
-class SubscriptionSelector extends StatefulWidget {
-  final SubscriptionPack subscriptionPack;
-  final String subscriptionName;
+class SubscriptionTile extends StatelessWidget {
   final String price;
   final String discount;
-  final bool selected;
-  //final ValueChanged<bool>? onSelected;
+  final String subscription;
+  final ValueChanged<bool>? notifyParent;
+  final bool isActive;
 
-  const SubscriptionSelector({
+  const SubscriptionTile({
     Key? key,
-    required this.subscriptionPack,
-    required this.subscriptionName,
     required this.price,
     required this.discount,
-    required this.selected,
-    //this.onSelected,
+    required this.subscription,
+    this.notifyParent,
+    this.isActive = false,
   }) : super(key: key);
 
-  @override
-  State<SubscriptionSelector> createState() => _SubscriptionSelectorState();
-}
-
-class _SubscriptionSelectorState extends State<SubscriptionSelector> {
-  bool _selected = false;
+  void manageState() {
+    notifyParent!(!isActive);
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        _selected = !_selected;
-        setState(() {});
-        //widget.onSelected;
-      },
+      onTap: manageState,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-              color: _selected ? Color(0xff05837F) : Colors.transparent),
+              color: isActive ? Color(0xff05837F) : Colors.transparent),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -176,7 +162,7 @@ class _SubscriptionSelectorState extends State<SubscriptionSelector> {
                     width: 10,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
-                      color: _selected ? Color(0xff05837F) : Colors.transparent,
+                      color: isActive ? Color(0xff05837F) : Colors.transparent,
                     ),
                   ),
                 ),
@@ -187,21 +173,21 @@ class _SubscriptionSelectorState extends State<SubscriptionSelector> {
                     color: Colors.deepOrangeAccent,
                   ),
                   child: Text(
-                    'SAVE ' + widget.discount,
+                    'SAVE ' + discount + '%',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 )
               ],
             ),
             Text(
-              widget.price,
+              'Rs.' + price,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w500,
               ),
             ),
             Text(
-              '${widget.subscriptionName} Subscription',
+              subscription,
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -220,30 +206,28 @@ class _SubscriptionSelectorState extends State<SubscriptionSelector> {
   }
 }
 
-class OneTimeButton extends StatefulWidget {
+class OneTimeButton extends StatelessWidget {
   final SubscriptionPack subscriptionPack;
-  const OneTimeButton({
+  final ValueChanged<bool>? notifyParent;
+  final bool isActive;
+
+  OneTimeButton({
     Key? key,
     required this.subscriptionPack,
+    this.notifyParent,
+    this.isActive = false,
   }) : super(key: key);
 
-  @override
-  State<OneTimeButton> createState() => _OneTimeButtonState();
-}
-
-class _OneTimeButtonState extends State<OneTimeButton> {
-  bool _selected = false;
+  void manageState() {
+    notifyParent!(!isActive);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Visibility(
-      visible: widget.subscriptionPack == SubscriptionPack.oneTime,
+      visible: subscriptionPack == SubscriptionPack.oneTime,
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selected = !_selected;
-          });
-        },
+        onTap: manageState,
         child: Column(
           children: [
             Row(
@@ -274,7 +258,7 @@ class _OneTimeButtonState extends State<OneTimeButton> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                    color: _selected ? Color(0xff05837F) : Colors.transparent),
+                    color: isActive ? Color(0xff05837F) : Colors.transparent),
                 boxShadow: const [
                   BoxShadow(
                     color: Color.fromRGBO(112, 144, 176, 0.08),
@@ -301,7 +285,7 @@ class _OneTimeButtonState extends State<OneTimeButton> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),
                         color:
-                            _selected ? Color(0xff05837F) : Colors.transparent,
+                            isActive ? Color(0xff05837F) : Colors.transparent,
                       ),
                     ),
                   ),

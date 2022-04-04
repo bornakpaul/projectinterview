@@ -1,30 +1,5 @@
 import 'package:flutter/material.dart';
 
-class KuddlePage extends StatelessWidget {
-  const KuddlePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Kuddle'),
-      ),
-      body: Container(
-        padding: EdgeInsets.all(10),
-        child: const SubscriptionSelection(
-          details: [
-            SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
-            SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
-            SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
-            SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
-          ],
-          selected: 0,
-        ),
-      ),
-    );
-  }
-}
-
 class SubDetails {
   final String subscriptionName;
   final String price;
@@ -35,6 +10,37 @@ class SubDetails {
     required this.price,
     required this.discount,
   });
+}
+
+class KuddlePage extends StatefulWidget {
+  const KuddlePage({Key? key}) : super(key: key);
+
+  @override
+  State<KuddlePage> createState() => _KuddlePageState();
+}
+
+class _KuddlePageState extends State<KuddlePage> {
+  @override
+  Widget build(BuildContext context) {
+    List<SubDetails> subdetails = [
+      SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
+      SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
+      SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
+      SubDetails(subscriptionName: 'Yearly', price: '20', discount: '40'),
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Kuddle'),
+      ),
+      body: Container(
+        padding: EdgeInsets.all(10),
+        child: SubscriptionSelection(
+          details: subdetails.map((e) => e).toList(),
+          selected: 0,
+        ),
+      ),
+    );
+  }
 }
 
 class SubscriptionSelection extends StatefulWidget {
@@ -79,9 +85,7 @@ class _SubscriptionSelectionState extends State<SubscriptionSelection> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          setState(() {
-            selectedIndex = currentIndex;
-          });
+          selectedIndex = currentIndex;
         });
       },
       child: Container(
